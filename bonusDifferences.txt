@@ -1,0 +1,56 @@
+OLD:
+
+program -> var section body
+var section -> id list SEMICOLON
+id list -> ID COMMA id list | ID
+body -> LBRACE stmt list RBRACE
+stmt list -> stmt stmt list | stmt
+stmt -> assign stmt | print stmt | while stmt | if stmt | switch stmt | for stmt
+assign stmt -> ID EQUAL primary SEMICOLON
+assign stmt -> ID EQUAL expr SEMICOLON
+expr -> primary op primary
+primary -> ID | NUM
+op -> PLUS | MINUS | MULT | DIV
+print stmt -> print ID SEMICOLON
+while stmt -> WHILE condition body
+if stmt -> IF condition body
+condition -> primary relop primary
+relop -> GREATER | LESS | NOTEQUAL
+switch stmt -> SWITCH ID LBRACE case list RBRACE
+switch stmt -> SWITCH ID LBRACE case list default case RBRACE
+for stmt -> FOR LPAREN assign stmt condition SEMICOLON assign stmt RPAREN body
+case list -> case case list | case
+case -> CASE NUM COLON body
+default case -> DEFAULT COLON body
+
+------------------------------------
+
+NEW:
+
+program -> var section body
+var section -> VAR int var decl array var decl
+int var decl -> id list SEMICOLON
+array var decl -> id list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
+id list -> ID COMMA id list | ID
+body -> LBRACE stmt list RBRACE
+stmt list -> stmt stmt list | stmt
+stmt -> assign stmt | print stmt | while stmt | if stmt | switch stmt
+assign stmt -> var access EQUAL expr SEMICOLON
+var access -> ID | ID LBRAC expr RBRAC
+expr -> term PLUS expr
+expr -> term
+term -> factor MULT term
+term -> factor
+factor -> LPAREN expr RPAREN
+factor -> NUM
+factor -> var access
+print stmt -> print var access SEMICOLON
+while stmt -> WHILE condition body
+if stmt -> IF condition body
+condition -> expr relop expr
+relop -> GREATER | LESS | NOTEQUAL
+switch stmt -> SWITCH var access LBRACE case list RBRACE
+switch stmt -> SWITCH var access LBRACE case list default case RBRACE
+case list -> case case list | case
+case -> CASE NUM COLON body
+default case -> DEFAULT COLON body
