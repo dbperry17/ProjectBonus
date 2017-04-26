@@ -1,0 +1,64 @@
+
+j, i, minusfour, k, test;
+
+{
+i = 4;
+j = 3;
+minusfour = 0-4;
+test = 30;
+
+FOR (i = i ; i > 0 ; i = i-1;)
+{
+	j = 3;
+	SWITCH test
+	{
+		CASE 30:
+		{
+			SWITCH j
+			{
+				CASE 2:
+				{
+					i = i - 30;
+					print i;
+				}
+				CASE 1:
+				{
+					i = i - 20;
+					print i;
+				}
+				DEFAULT:
+				{
+					FOR (j = j ; j > 0 ; j = j-1;)
+					{
+						k = i*j;
+						print k;
+					}
+					FOR (j = j ; j > 0 ; j = j-1;)
+					{
+						k = i*j;
+						print k;
+					}
+				}
+			}
+		}
+		CASE 0:
+		{
+			print minusfour;
+		}
+		DEFAULT:
+		{
+			print test;
+		}
+	}
+}
+
+FOR (i = i ; i > minusfour ; i = i-1;) {
+	print i;
+}
+
+i = i+1;
+j = j+1;
+print i;
+print j;
+
+}

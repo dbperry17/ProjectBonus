@@ -1,0 +1,25 @@
+
+a , b , c;
+{
+a = 0 ;
+b = 1 ; 
+c = 2 ;
+
+print c;
+
+SWITCH c
+{
+	CASE 0:
+	{
+		print a;
+	}
+	CASE 1:
+	{
+		print b;
+	}
+	DEFAULT :
+	{
+		print c;
+	}
+}
+}
