@@ -95,7 +95,7 @@ ValueNode* Parser::symLookup(string name)
 {
     if(errorFind)
         cout << "Starting " << "symLookup" << endl;
-    ValueNode* tempNode;
+    ValueNode* tempNode = new ValueNode;
     int iter = 0;
     bool found = false;
     for(iter = 0; iter < (int)symTable.size(); iter++)
@@ -205,28 +205,33 @@ void Parser::printStatementList(StatementNode* head)
 
 // Parsing
 /*
- * program	    ->	var_section body
- * var_section	->	id_list SEMICOLON
- * id_list	    ->	ID COMMA id_list | ID
- * body	        ->	LBRACE stmt_list RBRACE
- * stmt_list	->	stmt stmt_list | stmt
- * stmt	        ->	assign_stmt | print_stmt | while_stmt | if_stmt | switch_stmt | for_stmt
- * assign_stmt	->	ID EQUAL primary SEMICOLON
- * assign_stmt	->	ID EQUAL expr SEMICOLON
- * expr	        ->	primary op primary
- * primary	    ->	ID | NUM
- * op       	->	PLUS | MINUS | MULT | DIV
- * if_stmt  	->	IF condition body
- * while_stmt	->	WHILE condition body
- * for_stmt 	->	FOR LPAREN assign_stmt condition SEMICOLON assign_stmt RPAREN body
- * condition	->	primary relop primary
- * relop	    ->	GREATER | LESS | NOTEQUAL
- * switch_stmt	->	SWITCH ID LBRACE case_list RBRACE
- * switch_stmt	->	SWITCH ID LBRACE case_list default_case RBRACE
- * case_list	->	case case_list | case
- * case	        ->	CASE NUM COLON body
- * default_case	->	DEFAULT COLON body
- * print_stmt	->	print ID SEMICOLON
+ * program -> var_section body
+ * var_section -> VAR int_var_decl array_var_decl
+ * int_var_decl -> id_list SEMICOLON
+ * array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
+ * id_list -> ID COMMA id_list | ID
+ * body -> LBRACE stmt_list RBRACE
+ * stmt_list -> stmt stmt_list | stmt
+ * stmt -> assign_stmt | print_stmt | while_stmt | if_stmt | switch_stmt
+ * assign_stmt -> var_access EQUAL expr SEMICOLON
+ * var_access -> ID | ID LBRAC expr RBRAC
+ * expr -> term PLUS expr
+ * expr -> term
+ * term -> factor MULT term
+ * term -> factor
+ * factor -> LPAREN expr RPAREN
+ * factor -> NUM
+ * factor -> var_access
+ * print_stmt -> print var_access SEMICOLON
+ * while_stmt -> WHILE condition body
+ * if_stmt -> IF condition body
+ * condition -> expr relop expr
+ * relop -> GREATER | LESS | NOTEQUAL
+ * switch_stmt -> SWITCH var_access LBRACE case_list RBRACE
+ * switch_stmt -> SWITCH var_access LBRACE case_list default_case RBRACE
+ * case_list -> case case_list | case
+ * case -> CASE NUM COLON body
+ * default_case -> DEFAULT COLON body
  */
 
 //program -> var_section body
@@ -250,7 +255,8 @@ StatementNode* Parser::parse_program()
     return node;
 }
 
-//var_section -> id_list SEMICOLON
+//var_section -> VAR int_var_decl array_var_decl
+//TODO: Alter this
 void Parser::parse_var_section()
 {
     if(errorFind)
@@ -261,6 +267,20 @@ void Parser::parse_var_section()
 
     if(errorFind)
         cout << "Finished " << "parse_var_section" << endl;
+}
+
+//int_var_decl -> id_list SEMICOLON
+//TODO: Implement this
+void Parser::parse_int_var_decl()
+{
+
+}
+
+//array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
+//TODO: Implement this
+void Parser::parse_array_var_decl()
+{
+
 }
 
 //id_list -> ID COMMA id_list | ID
@@ -411,7 +431,6 @@ StatementNode* Parser::parse_stmt_list()
 //stmt -> while_stmt
 //stmt -> if_stmt
 //stmt -> switch_stmt
-//stmt -> for_stmt
 StatementNode * Parser::parse_stmt()
 {
     if(errorFind)
@@ -462,13 +481,6 @@ StatementNode * Parser::parse_stmt()
             cout << "\nStatement type: Switch" << endl;
         stmt = parse_switch_stmt();
     }
-    else if (t.token_type == FOR)
-    {
-        //stmt -> for_stmt
-        if(errorFind)
-            cout << "\nStatement type: For" << endl;
-        stmt = parse_for_stmt();
-    }
     else
     {
         syntax_error();
@@ -480,8 +492,7 @@ StatementNode * Parser::parse_stmt()
     return stmt;
 }
 
-//assign_stmt -> ID EQUAL primary SEMICOLON
-//assign_stmt -> ID EQUAL expr SEMICOLON
+//assign_stmt -> var_access EQUAL expr SEMICOLON
 StatementNode* Parser::parse_assign_stmt()
 {
     if(errorFind)
@@ -528,7 +539,16 @@ StatementNode* Parser::parse_assign_stmt()
     return stmt;
 }
 
-//expr -> primary op primary
+//var_access -> ID | ID LBRAC expr RBRAC
+//TODO: Implement this
+void Parser::parse_var_access()
+{
+
+}
+
+//expr -> term PLUS expr
+//expr -> term
+//TODO: Alter this
 Parser::ExprNode* Parser::parse_expr()
 {
     if(errorFind)
@@ -546,71 +566,21 @@ Parser::ExprNode* Parser::parse_expr()
     return expr;
 }
 
-//primary -> ID | NUM
-ValueNode* Parser::parse_primary()
+//term -> factor MULT term
+//term -> factor
+//TODO: Implement this
+void Parser::parse_term()
 {
-    if(errorFind)
-        cout << "Starting " << "parse_primary" << endl;
 
-    ValueNode* node;
-    Token t = lexer.GetToken();
-    if(t.token_type == ID)
-    {
-        //primary -> ID
-
-        node = symLookup(t.lexeme);
-    }
-    else if(t.token_type == NUM)
-    {
-        //primary -> NUM
-        node = constNode(stoi(t.lexeme));
-    }
-    else
-        syntax_error();
-
-    if(errorFind)
-        cout << "Finished " << "parse_primary" << endl;
-
-    return node;
 }
 
-//op -> PLUS | MINUS | MULT | DIV
-ArithmeticOperatorType Parser::parse_op()
+//factor -> LPAREN expr RPAREN
+//factor -> NUM
+//factor -> var_access
+//TODO: Implement this
+void Parser::parse_factor()
 {
-    if(errorFind)
-        cout << "Starting " << "parse_op" << endl;
 
-    Token t = lexer.GetToken();
-    ArithmeticOperatorType op;
-    op = OPERATOR_NONE;
-
-    if(t.token_type == PLUS)
-    {
-        //op -> PLUS
-        op = OPERATOR_PLUS;
-    }
-    else if(t.token_type == MINUS)
-    {
-        //op -> MINUS
-        op = OPERATOR_MINUS;
-    }
-    else if(t.token_type == MULT)
-    {
-        //op -> MULT
-        op = OPERATOR_MULT;
-    }
-    else if(t.token_type == DIV)
-    {
-        //op -> DIV
-        op = OPERATOR_DIV;
-    }
-    else
-        syntax_error();
-
-    if(errorFind)
-        cout << "Finished " << "parse_op" << endl;
-
-    return op;
 }
 
 //if_stmt -> IF condition body
@@ -689,91 +659,8 @@ StatementNode* Parser::parse_while_stmt()
     return stmt;
 }
 
-//for_stmt -> FOR LPAREN assign_stmt condition SEMICOLON assign_stmt RPAREN body
-StatementNode* Parser::parse_for_stmt()
-{
-    /*
-    StatementNode* stmt = new StatementNode;
-    stmt->type = IF_STMT;
-    IfStatement* forNode = new IfStatement;
-    stmt->if_stmt = forNode;
-
-    expect(FOR);
-    expect(LPAREN);
-    parse_assign_stmt();
-    parse_condition();
-    expect(SEMICOLON);
-    parse_assign_stmt();
-    expect(RPAREN);
-    parse_body();
-
-    return stmt;
-    */
-
-    StatementNode* stmt = new StatementNode;
-    stmt->type = ASSIGN_STMT;
-    StatementNode* aStmt2 = new StatementNode;
-    aStmt2->type = ASSIGN_STMT;
-    AssignmentStatement* aNode1 = new AssignmentStatement;
-    stmt->assign_stmt = aNode1;
-    AssignmentStatement* aNode2 = new AssignmentStatement;
-    aStmt2->assign_stmt = aNode2;
-
-    StatementNode* ifStmt = new StatementNode;
-    ifStmt->type = IF_STMT;
-    IfStatement* forNode = new IfStatement;
-    ifStmt->if_stmt = forNode;
-    StatementNode* noOpNode = new StatementNode;
-    noOpNode->type = NOOP_STMT;
-    StatementNode* gtStmt = new StatementNode;
-    gtStmt->type = GOTO_STMT;
-    GotoStatement* gtNode = new GotoStatement;
-    gtStmt->goto_stmt = gtNode;
-    gtNode->target = ifStmt;
-
-
-    CondNode* condNode;
-
-    //Actual parsing part
-    expect(FOR);
-    expect(LPAREN);
-    stmt = parse_assign_stmt();
-
-    condNode = parse_condition();
-    forNode->condition_operand1 = condNode->op1;
-    forNode->condition_op = condNode->condType;
-    forNode->condition_operand2 = condNode->op2;
-    expect(SEMICOLON);
-
-    aStmt2 = parse_assign_stmt();
-    expect(RPAREN);
-    forNode->true_branch = parse_body();
-    //Actual parsing part done
-
-    stmt->next = ifStmt;
-    StatementNode* current = forNode->true_branch;
-
-    //Find end of True Branch's body
-    while (current->next != NULL)
-    {
-        current = current->next;
-    }
-
-    //append assign node 2 to end of TB's body
-    current->next = aStmt2;
-
-    //append goto node to end of TB's body
-    aStmt2->next = gtStmt;
-
-    //append no-op node to end of TB's body
-    gtStmt->next = noOpNode;
-    forNode->false_branch = noOpNode;
-    noOpNode->next = NULL;
-
-    return stmt;
-}
-
-//condition -> primary relop primary
+//condition -> expr relop expr
+//TODO: Alter this
 Parser::CondNode* Parser::parse_condition()
 {
     CondNode* node = new CondNode;
@@ -791,7 +678,8 @@ ConditionalOperatorType Parser::parse_relop()
     if(errorFind)
         cout << "Starting " << "parse_relop" << endl;
 
-    ConditionalOperatorType relop;
+    //initialized so that CLion will stop complaining
+    ConditionalOperatorType relop = CONDITION_NOTEQUAL;
 
     Token t = lexer.GetToken();
     if (t.token_type == GREATER)
@@ -818,8 +706,9 @@ ConditionalOperatorType Parser::parse_relop()
     return relop;
 }
 
-//switch_stmt -> SWITCH ID LBRACE case_list RBRACE
-//switch_stmt -> SWITCH ID LBRACE case_list default_case RBRACE
+//switch_stmt -> SWITCH var_access LBRACE case_list RBRACE
+//switch_stmt -> SWITCH var_access LBRACE case_list default_case RBRACE
+//TODO: Alter this
 StatementNode* Parser::parse_switch_stmt()
 {
     /*
@@ -1036,7 +925,8 @@ StatementNode* Parser::parse_default_case()
     return parse_body();
 }
 
-//print_stmt -> print ID SEMICOLON
+//print_stmt -> print var_access SEMICOLON
+//TODO: Alter this
 StatementNode* Parser::parse_print_stmt()
 {
     if(errorFind)

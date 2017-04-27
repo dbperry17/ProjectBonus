@@ -55,3 +55,70 @@ case_list -> case case_list | case
 case -> CASE NUM COLON body
 default_case -> DEFAULT COLON body
 
+-----------------------------------------
+
+DIFFERENCES:
+
+OLD:	var_section -> id_list SEMICOLON
+NEW:	var_section -> VAR int_var_decl array_var_decl
+
+NEW:	int_var_decl -> id_list SEMICOLON
+
+NEW:	array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
+
+OLD:	stmt -> assign_stmt | print_stmt | while_stmt | if_stmt | switch_stmt | for_stmt
+NEW:	stmt -> assign_stmt | print_stmt | while_stmt | if_stmt | switch_stmt
+
+OLD:	assign_stmt -> ID EQUAL primary SEMICOLON
+OLD:	assign_stmt -> ID EQUAL expr SEMICOLON
+NEW:	assign_stmt -> var_access EQUAL expr SEMICOLON
+
+NEW:	var_access -> ID | ID LBRAC expr RBRAC
+
+OLD:	expr -> primary op primary
+NEW:	expr -> term PLUS expr
+NEW:	expr -> term
+
+OLD:	primary -> ID | NUM
+
+OLD:	op -> PLUS | MINUS | MULT | DIV
+
+NEW:	term -> factor MULT term
+NEW:	term -> factor
+NEW:	factor -> LPAREN expr RPAREN
+NEW:	factor -> NUM
+NEW:	factor -> var_access
+
+OLD:	print_stmt -> print ID SEMICOLON
+NEW:	print_stmt -> print var_access SEMICOLON
+
+OLD:	condition -> primary relop primary
+NEW:	condition -> expr relop expr
+
+OLD:	switch_stmt -> SWITCH ID LBRACE case_list RBRACE
+NEW:	switch_stmt -> SWITCH var_access LBRACE case_list RBRACE
+
+OLD:	switch_stmt -> SWITCH ID LBRACE case_list default_case RBRACE
+NEW:	switch_stmt -> SWITCH var_access LBRACE case_list default_case RBRACE
+
+OLD:	for_stmt -> FOR LPAREN assign_stmt condition SEMICOLON assign_stmt RPAREN body
+
+
+-----------------------------------------------
+
+IDENTICAL PORTIONS:
+
+program -> var_section body
+
+id_list -> ID COMMA id_list | ID
+body -> LBRACE stmt_list RBRACE
+stmt_list -> stmt stmt_list | stmt
+
+while_stmt -> WHILE condition body
+if_stmt -> IF condition body
+
+relop -> GREATER | LESS | NOTEQUAL
+
+case_list -> case case_list | case
+case -> CASE NUM COLON body
+default_case -> DEFAULT COLON body
