@@ -258,12 +258,15 @@ StatementNode* Parser::parse_program()
 //OLD:  var_section -> id_list SEMICOLON
 //var_section -> VAR int_var_decl array_var_decl
 //TODO: Alter this
+//TODO: May need to do something after parsing
 void Parser::parse_var_section()
 {
     if(errorFind)
         cout << "Starting " << "parse_var_section" << endl;
 
-    parse_id_list();
+    expect(VAR);
+    parse_int_var_decl();
+    parse_array_var_decl();
     expect(SEMICOLON);
 
     if(errorFind)
@@ -271,21 +274,37 @@ void Parser::parse_var_section()
 }
 
 //int_var_decl -> id_list SEMICOLON
-//TODO: Implement this
+//TODO: Implement this (Might need to return something)
 void Parser::parse_int_var_decl()
 {
-
+    parse_id_list(false, 0);
+    expect(SEMICOLON);
 }
 
 //array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
-//TODO: Implement this
+//TODO: Implement this (Might need to return something)
+//TODO: Figure out what to do with the num (expecting for now for parsing purposes)
 void Parser::parse_array_var_decl()
 {
-
+    //idea: get token of start of idlist, parse idList,
+    //      expect until num, store num, unget token to
+    //      start of idList, then parse idlist again
+    //      with proper size
+    //      problem: don't want to store things with first call
+    //      solution:   if arr, don't store unless size != 0
+    parse_id_list(true, 0);
+    expect(COLON);
+    expect(ARRAY);
+    expect(LBRAC);
+    expect(NUM);
+    expect(RBRAC);
+    expect(SEMICOLON);
 }
 
 //id_list -> ID COMMA id_list | ID
-void Parser::parse_id_list()
+//parameter: 1 if array input, 0 if int input
+//TODO: Deal with ints vs arrays
+void Parser::parse_id_list(bool arr, int size)
 {
     if(errorFind)
         cout << "Starting " << "parse_id_list" << endl;
@@ -295,13 +314,19 @@ void Parser::parse_id_list()
     ValueNode* tmpSym = new ValueNode;
     Token t = expect(ID);
     tmpSym->name = t.lexeme;
-    symTable.push_back(tmpSym);
+    if(arr)
+    {
+
+    }
+    else
+        symTable.push_back(tmpSym);
+
     t = lexer.GetToken();
     if (t.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
         //General case
-        parse_id_list();
+        parse_id_list(arr, 0);
     }
     else if (t.token_type == SEMICOLON)
     {

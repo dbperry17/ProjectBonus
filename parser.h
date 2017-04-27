@@ -32,7 +32,7 @@ public:
     void parse_var_section();
     void parse_int_var_decl();
     void parse_array_var_decl();
-    void parse_id_list();
+    void parse_id_list(bool arr, int size);
     StatementNode* parse_body();
     StatementNode* parse_stmt_list();
     StatementNode* parse_stmt();
