@@ -255,6 +255,7 @@ StatementNode* Parser::parse_program()
     return node;
 }
 
+//OLD:  var_section -> id_list SEMICOLON
 //var_section -> VAR int_var_decl array_var_decl
 //TODO: Alter this
 void Parser::parse_var_section()
@@ -492,7 +493,11 @@ StatementNode * Parser::parse_stmt()
     return stmt;
 }
 
+
+//OLD:	assign_stmt -> ID EQUAL primary SEMICOLON
+//OLD:	assign_stmt -> ID EQUAL expr SEMICOLON
 //assign_stmt -> var_access EQUAL expr SEMICOLON
+//TODO: Alter this
 StatementNode* Parser::parse_assign_stmt()
 {
     if(errorFind)
@@ -546,6 +551,7 @@ void Parser::parse_var_access()
 
 }
 
+//OLD: expr -> primary op primary
 //expr -> term PLUS expr
 //expr -> term
 //TODO: Alter this
@@ -659,6 +665,7 @@ StatementNode* Parser::parse_while_stmt()
     return stmt;
 }
 
+//OLD:	condition -> primary relop primary
 //condition -> expr relop expr
 //TODO: Alter this
 Parser::CondNode* Parser::parse_condition()
@@ -706,6 +713,8 @@ ConditionalOperatorType Parser::parse_relop()
     return relop;
 }
 
+//OLD:	switch_stmt -> SWITCH ID LBRACE case_list RBRACE
+//OLD:	switch_stmt -> SWITCH ID LBRACE case_list default_case RBRACE
 //switch_stmt -> SWITCH var_access LBRACE case_list RBRACE
 //switch_stmt -> SWITCH var_access LBRACE case_list default_case RBRACE
 //TODO: Alter this
@@ -925,6 +934,7 @@ StatementNode* Parser::parse_default_case()
     return parse_body();
 }
 
+//OLD:	print_stmt -> print ID SEMICOLON
 //print_stmt -> print var_access SEMICOLON
 //TODO: Alter this
 StatementNode* Parser::parse_print_stmt()
