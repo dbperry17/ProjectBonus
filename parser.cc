@@ -123,7 +123,7 @@ void Parser::print()
 }
 
 //Check to see if item is in symbol table
-myVar* Parser::symLookup(string name, TokenType type)
+Parser::myVar* Parser::symLookup(string name, TokenType type)
 {
     if(errorFind)
         cout << "Starting " << "symLookup" << endl;
@@ -816,7 +816,6 @@ StatementNode* Parser::parse_while_stmt()
     return stmt;
 }
 
-//OLD:	condition -> primary relop primary
 //condition -> expr relop expr
 //TODO: Alter this (possibly done)
 Parser::CondNode* Parser::parse_condition()
@@ -936,8 +935,7 @@ StatementNode* Parser::parse_switch_stmt()
     expect(SWITCH);
 
     //expect(ID);
-    Token t = lexer.GetToken();
-    ValueNode* switchVar = symLookup(t.lexeme);
+    ValueNode* switchVar = parse_var_access();
     expect(LBRACE);
     stmt = parse_case_list();
 
@@ -987,7 +985,7 @@ StatementNode* Parser::parse_switch_stmt()
      */
 
 
-    t = peek();
+    Token t = peek();
     if(t.token_type == DEFAULT)
     {
         //switch_stmt -> SWITCH ID LBRACE case_list default_case RBRACE
@@ -1101,7 +1099,7 @@ StatementNode* Parser::parse_default_case()
 
 //OLD:	print_stmt -> print ID SEMICOLON
 //print_stmt -> print var_access SEMICOLON
-//TODO: Alter this
+//TODO: Alter this (possibly done)
 StatementNode* Parser::parse_print_stmt()
 {
     if(errorFind)
@@ -1113,8 +1111,7 @@ StatementNode* Parser::parse_print_stmt()
     stmt->print_stmt = printNode;
 
     expect(PRINT);
-    Token t = expect(ID);
-    printNode->id = symLookup(t.lexeme);
+    printNode->id = parse_var_access();
     expect(SEMICOLON);
 
     if(errorFind)
