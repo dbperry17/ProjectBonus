@@ -16,12 +16,16 @@ class Parser {
     struct ExprNode;
     struct CondNode;
     struct CaseNode;
+    union variables;
+    struct myVar;
+    struct ArrNode;
     LexicalAnalyzer lexer;
     void syntax_error();
     Token expect(TokenType expected_type);
     Token peek();
-    ValueNode* symLookup(std::string name);
-    ValueNode* addValNode(std::string name);
+    myVar* symLookup(std::string name, TokenType type);
+    myVar* addValNode(std::string name);
+    myVar* addArrNode(std::string name);
     ValueNode* constNode(int val);
     void printStatementList(StatementNode* head);
 

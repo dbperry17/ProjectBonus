@@ -6,15 +6,23 @@
 #include <iostream>
 #include <algorithm>
 #include "parser.h"
-
 using namespace std;
+
+/********************
+ *  TEST VARIABLES  *
+ ********************/
+
 bool errorFind = false;
 bool testIf = false;
 bool testSwitch = false;
 int testNum = 1;
 //cout << "test " << testNum++ << endl;
 
-vector<ValueNode*> symTable;
+
+/*******************************
+ *  GLOBAL STRUCTS AND UNIONS  *
+ *******************************/
+
 struct Parser::ExprNode
 {
     ValueNode* op1;
@@ -34,6 +42,28 @@ struct Parser::CaseNode
     ValueNode* n;
     StatementNode* body;
 };
+
+struct ArrNode
+{
+    std::string name;
+    int size;
+    vector<ValueNode*> valNodes;
+};
+
+union varNode
+{
+    ValueNode* intNode;
+    ArrNode* arrNode;
+};
+
+struct myVar
+{
+    varNode* var;
+    TokenType type;
+};
+
+vector<myVar*> symTable;
+
 
 /********************************************************************
  *                                                                  *
@@ -84,33 +114,48 @@ void Parser::print()
 {
     for(int i = 0; i < (int)symTable.size(); i++)
     {
-        cout << symTable[i]->name << " ";
-
+        if(symTable[i]->type == NUM)
+            cout << symTable[i]->var->intNode->name << " ";
+        else
+            cout << symTable[i]->var->arrNode->name << " ";
     }
     cout << "#" << endl;
 }
 
 //Check to see if item is in symbol table
-ValueNode* Parser::symLookup(string name)
+myVar* Parser::symLookup(string name, TokenType type)
 {
     if(errorFind)
         cout << "Starting " << "symLookup" << endl;
-    ValueNode* tempNode = new ValueNode;
+    myVar* tempNode = new myVar;
     int iter = 0;
     bool found = false;
     for(iter = 0; iter < (int)symTable.size(); iter++)
     {
-        //Remember, string comparison returns 0 if strings are equal
-        if(name.compare((symTable[iter])->name) == 0)
+        if(symTable[iter]->type == NUM)
         {
-            tempNode = symTable[iter];
-            found = true;
+            //Remember, string comparison returns 0 if strings are equal
+            if (name.compare(symTable[iter]->var->intNode->name) == 0)
+            {
+                tempNode = symTable[iter];
+                found = true;
+            }
+        }
+        else
+        {
+            if (name.compare(symTable[iter]->var->arrNode->name) == 0)
+            {
+                tempNode = symTable[iter];
+                found = true;
+            }
         }
     }
 
     //Symbol not in table, so add it
-    if(!found)
+    if(!found && type == NUM)
         tempNode = addValNode(name);
+    else if(!found)
+        tempNode = addArrNode(name);
 
     if(errorFind)
         cout << "Finished " << "symLookup" << endl;
@@ -119,18 +164,37 @@ ValueNode* Parser::symLookup(string name)
 }
 
 //Adds new ValueNode to symbol table
-ValueNode* Parser::addValNode(string name)
+myVar* Parser::addValNode(string name)
 {
     if(errorFind)
         cout << "Starting " << "addValNode" << endl;
 
-    ValueNode* temp = new ValueNode;
-    temp->name = "constant";
+    myVar* temp = new myVar;
+    temp->type = NUM;
+    temp->var->intNode->name = name;
     symTable.push_back(temp);
-    temp = symLookup(name); //yay recursion
+    temp = symLookup(name, NUM); //yay recursion
 
     if(errorFind)
         cout << "Finished " << "addValNode" << endl;
+
+    return temp;
+}
+
+//Adds new ArrNode to symbol table
+myVar* Parser::addArrNode(string name)
+{
+    if(errorFind)
+        cout << "Starting " << "addArrNode" << endl;
+
+    myVar* temp = new myVar;
+    temp->type = ARRAY;
+    temp->var->arrNode->name = name;
+    symTable.push_back(temp);
+    temp = symLookup(name, ARRAY); //yay recursion
+
+    if(errorFind)
+        cout << "Finished " << "addArrNode" << endl;
 
     return temp;
 }
@@ -257,7 +321,6 @@ StatementNode* Parser::parse_program()
 
 //OLD:  var_section -> id_list SEMICOLON
 //var_section -> VAR int_var_decl array_var_decl
-//TODO: Alter this
 //TODO: May need to do something after parsing
 void Parser::parse_var_section()
 {
@@ -267,14 +330,13 @@ void Parser::parse_var_section()
     expect(VAR);
     parse_int_var_decl();
     parse_array_var_decl();
-    expect(SEMICOLON);
 
     if(errorFind)
         cout << "Finished " << "parse_var_section" << endl;
 }
 
 //int_var_decl -> id_list SEMICOLON
-//TODO: Implement this (Might need to return something)
+//TODO: Might need to return something
 void Parser::parse_int_var_decl()
 {
     parse_id_list(false, 0);
@@ -282,28 +344,30 @@ void Parser::parse_int_var_decl()
 }
 
 //array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
-//TODO: Implement this (Might need to return something)
-//TODO: Figure out what to do with the num (expecting for now for parsing purposes)
+//TODO: Might need to return something
 void Parser::parse_array_var_decl()
 {
     //idea: get token of start of idlist, parse idList,
     //      expect until num, store num, unget token to
     //      start of idList, then parse idlist again
     //      with proper size
-    //      problem: don't want to store things with first call
+    //      problem:    don't want to store things with first call
     //      solution:   if arr, don't store unless size != 0
+    Token t = peek();
     parse_id_list(true, 0);
     expect(COLON);
     expect(ARRAY);
     expect(LBRAC);
-    expect(NUM);
+    Token t2 = lexer.GetToken();
+    lexer.UngetToken(t);
+    parse_id_list(true, stoi(t2.lexeme));
     expect(RBRAC);
     expect(SEMICOLON);
 }
 
 //id_list -> ID COMMA id_list | ID
 //parameter: 1 if array input, 0 if int input
-//TODO: Deal with ints vs arrays
+//TODO: Deal with ints vs arrays (possibly done)
 void Parser::parse_id_list(bool arr, int size)
 {
     if(errorFind)
@@ -311,22 +375,28 @@ void Parser::parse_id_list(bool arr, int size)
 
     // id_list -> ID
     // id_list -> ID COMMA id_list
-    ValueNode* tmpSym = new ValueNode;
+    myVar* tmpSym = new myVar;
     Token t = expect(ID);
-    tmpSym->name = t.lexeme;
-    if(arr)
+    if(arr && size != 0)
     {
-
-    }
-    else
+        tmpSym->type = ARRAY;
+        tmpSym->var->arrNode->name = t.lexeme;
+        tmpSym->var->arrNode->size = size;
         symTable.push_back(tmpSym);
+    }
+    else if(!arr)
+    {
+        tmpSym->type = NUM;
+        tmpSym->var->intNode->name = t.lexeme;
+        symTable.push_back(tmpSym);
+    }
 
     t = lexer.GetToken();
     if (t.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
         //General case
-        parse_id_list(arr, 0);
+        parse_id_list(arr, size);
     }
     else if (t.token_type == SEMICOLON)
     {
