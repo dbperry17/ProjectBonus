@@ -83,20 +83,10 @@ void execute_program(struct StatementNode * program)
                         op2 = pc->assign_stmt->operand2->value;
                         result = op1 + op2;
                         break;
-                    case OPERATOR_MINUS:
-                        op1 = pc->assign_stmt->operand1->value;
-                        op2 = pc->assign_stmt->operand2->value;
-                        result = op1 - op2;
-                        break;
                     case OPERATOR_MULT:
                         op1 = pc->assign_stmt->operand1->value;
                         op2 = pc->assign_stmt->operand2->value;
                         result = op1 * op2;
-                        break;
-                    case OPERATOR_DIV:
-                        op1 = pc->assign_stmt->operand1->value;
-                        op2 = pc->assign_stmt->operand2->value;
-                        result = op1 / op2;
                         break;
                     case OPERATOR_NONE:
                         op1 = pc->assign_stmt->operand1->value;

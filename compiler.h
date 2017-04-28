@@ -7,6 +7,7 @@
 #define _COMPILER_H_
 
 #include <string>
+#include "lexer.h"
 
 struct ValueNode
 {
@@ -22,9 +23,7 @@ struct GotoStatement
 enum ArithmeticOperatorType {
     OPERATOR_NONE = 123,
     OPERATOR_PLUS,
-    OPERATOR_MINUS,
-    OPERATOR_MULT,
-    OPERATOR_DIV
+    OPERATOR_MULT
 };
 
 struct AssignmentStatement

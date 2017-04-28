@@ -16,7 +16,7 @@ using namespace std;
 
 string reserved[] = { "END_OF_FILE",
     "VAR", "IF", "WHILE", "FOR", "SWITCH", "CASE", "DEFAULT", "PRINT", "ARRAY",
-    "PLUS", "MINUS", "DIV", "MULT",
+    "PLUS", "MULT",
     "EQUAL", "COLON", "COMMA", "SEMICOLON",
     "LBRAC", "RBRAC", "LPAREN", "RPAREN", "LBRACE", "RBRACE",
     "NOTEQUAL", "GREATER", "LESS",

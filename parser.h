@@ -41,10 +41,10 @@ public:
     StatementNode* parse_stmt_list();
     StatementNode* parse_stmt();
     StatementNode* parse_assign_stmt();
-    void parse_var_access();
+    ValueNode* parse_var_access();
     ExprNode* parse_expr();
-    void parse_term();
-    void parse_factor();
+    ValueNode* parse_term();
+    ValueNode* parse_factor();
     StatementNode* parse_print_stmt();
     StatementNode* parse_while_stmt();
     StatementNode* parse_if_stmt();
