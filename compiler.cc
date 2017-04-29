@@ -39,6 +39,8 @@ void execute_program(struct StatementNode * program)
     struct StatementNode * pc = program;
     int op1, op2, result;
 
+	resetValues();
+
     while (pc != NULL)
     {
         switch (pc->type)
@@ -107,6 +109,7 @@ void execute_program(struct StatementNode * program)
                         exit(1);
                         break;
                 }
+
                 pc->assign_stmt->left_hand_side->value = result;
                 pc = pc->next;
                 break;
@@ -193,12 +196,12 @@ int main()
 {
     struct StatementNode * program;
     program = parse_generate_intermediate_representation();
-    if (DEBUG)
-    {
-        printf("\n-------------------------------------------\n");
-        print_program(program);
-        printf("\n-------------------------------------------\n");
-    }
     execute_program(program);
-    return 0;
+	if (DEBUG)
+	{
+		printf("\n-------------------------------------------\n");
+		print_program(program);
+		printf("\n-------------------------------------------\n");
+	}
+	return 0;
 }

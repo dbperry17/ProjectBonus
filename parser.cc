@@ -125,9 +125,8 @@ Parser::myVar* Parser::symLookup(string name, TokenType type)
     if(errorFind)
         cout << "Starting " << "symLookup" << endl;
     myVar* tempNode = new myVar;
-    int iter = 0;
     bool found = false;
-    for(iter = 0; iter < (int)symTable.size(); iter++)
+    for(int iter = 0; iter < (int)symTable.size(); iter++)
     {
         if(symTable[iter]->type == NUM)
         {
@@ -263,6 +262,26 @@ void Parser::printStatementList(StatementNode* head)
     cout << "NULL" << endl;
 }
 
+//Some evaluation is done while parsing
+//this resets it for compiling
+void resetValues()
+{
+	for(int iter = 0; iter < (int)symTable.size(); iter++)
+	{
+		if(symTable[iter]->type == NUM)
+		{
+			symTable[iter]->var->intNode->value = 0;
+		}
+		else
+		{
+			for(int j = 0; j < symTable[iter]->var->arrNode->size; j++)
+			{
+				symTable[iter]->var->arrNode->valNodes[j]->value = 0;
+			}
+		}
+	}
+}
+
 
 /*************
  *  PARSING  *
@@ -322,7 +341,6 @@ StatementNode* Parser::parse_program()
 
 //OLD:  var_section -> id_list SEMICOLON
 //var_section -> VAR int_var_decl array_var_decl
-//TODO: May need to do something after parsing
 void Parser::parse_var_section()
 {
     if(errorFind)
@@ -337,7 +355,6 @@ void Parser::parse_var_section()
 }
 
 //int_var_decl -> id_list SEMICOLON
-//TODO: Might need to return something
 void Parser::parse_int_var_decl()
 {
     if(errorFind)
@@ -351,7 +368,6 @@ void Parser::parse_int_var_decl()
 }
 
 //array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
-//TODO: Might need to return something
 void Parser::parse_array_var_decl()
 {
     if(errorFind)
@@ -392,12 +408,10 @@ void Parser::parse_array_var_decl()
 
 //id_list -> ID COMMA id_list | ID
 //parameter: 1 if array input, 0 if int input
-//TODO: Deal with ints vs arrays (possibly done)
 void Parser::parse_id_list(bool arr)
 {
     if(errorFind)
         cout << "Starting " << "parse_id_list" << endl;
-
 
     // id_list -> ID
     // id_list -> ID COMMA id_list
@@ -620,7 +634,6 @@ StatementNode * Parser::parse_stmt()
 
 
 //assign_stmt -> var_access EQUAL expr SEMICOLON
-//TODO: Alter this (possibly done)
 StatementNode* Parser::parse_assign_stmt()
 {
     if(errorFind)
@@ -643,6 +656,7 @@ StatementNode* Parser::parse_assign_stmt()
     assignNode->op = exprNode->arith;
     assignNode->operand1 = exprNode->op1;
     assignNode->operand2 = exprNode->op2;
+	stmt->assign_stmt->left_hand_side->value = evalExpr(exprNode);
 
 	Token t = peek();
 	expect(SEMICOLON);
@@ -654,7 +668,6 @@ StatementNode* Parser::parse_assign_stmt()
 }
 
 //var_access -> ID | ID LBRAC expr RBRAC
-//TODO: Implement this (possibly done)
 ValueNode* Parser::parse_var_access()
 {
     if(errorFind)
@@ -670,8 +683,8 @@ ValueNode* Parser::parse_var_access()
 		//var_access -> ID LBRAC expr RBRAC
 		temp = symLookup(t.lexeme, ARRAY);
 		ExprNode* pos = parse_expr();
-		expect(RBRAC);
 		node = temp->var->arrNode->valNodes[evalExpr(pos)];
+		expect(RBRAC);
 	}
     else
     {
@@ -689,7 +702,6 @@ ValueNode* Parser::parse_var_access()
 
 //expr -> term PLUS expr
 //expr -> term
-//TODO: Alter this (possibly done)
 ExprNode* Parser::parse_expr()
 {
     if(errorFind)
@@ -725,7 +737,6 @@ ExprNode* Parser::parse_expr()
 
 //term -> factor MULT term
 //term -> factor
-//TODO: Implement this (possibly done)
 ExprNode* Parser::parse_term()
 {
     if(errorFind)
@@ -754,7 +765,6 @@ ExprNode* Parser::parse_term()
 //factor -> LPAREN expr RPAREN
 //factor -> NUM
 //factor -> var_access
-//TODO: Implement this (possibly done)
 ValueNode* Parser::parse_factor()
 {
     if(errorFind)
@@ -867,7 +877,6 @@ StatementNode* Parser::parse_while_stmt()
 }
 
 //condition -> expr relop expr
-//TODO: Alter this (possibly done)
 Parser::CondNode* Parser::parse_condition()
 {
     if(errorFind)
@@ -1141,7 +1150,6 @@ StatementNode* Parser::parse_default_case()
 
 //OLD:	print_stmt -> print ID SEMICOLON
 //print_stmt -> print var_access SEMICOLON
-//TODO: Alter this (possibly done)
 StatementNode* Parser::parse_print_stmt()
 {
     if(errorFind)

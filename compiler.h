@@ -95,6 +95,7 @@ struct StatementNode
 
 void debug(const char* format, ...);
 int evalExpr(ExprNode* node);
+void resetValues();
 
 //---------------------------------------------------------
 // You should write the following function:

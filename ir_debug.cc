@@ -17,12 +17,12 @@ static void print_value_node(struct ValueNode* v)
 {
     if (v != NULL)
     {
-        if (v->name == "")
-            cout << v->value;
-        else
-            cout << v->name;
+        //if (v->name == "")
+        //    cout << v->value;
+        //else
+        //    cout << v->name;
         // Alternatively, you could print both:
-        // cout << v->name << " (" << v->value << ")";
+         cout << v->name << " (" << v->value << ")";
 
         // You could also print the address of the node as well:
         // cout << " @ " << v;
