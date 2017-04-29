@@ -12,7 +12,7 @@ using namespace std;
  *  TEST VARIABLES  *
  ********************/
 
-bool errorFind = true;
+bool errorFind = false;
 bool testIf = false;
 bool testSwitch = false;
 int testNum = 1;
@@ -93,7 +93,11 @@ Token Parser::expect(TokenType expected_type)
 
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
-        syntax_error();
+	{
+		cout << "Token Type: " << t.token_type << endl;
+		syntax_error();
+	}
+
 
     if(errorFind)
         cout << "Found Token" << endl;
@@ -378,7 +382,11 @@ void Parser::parse_array_var_decl()
             symTable[i]->var->arrNode->size = stoi(t.lexeme);
             for(int j = 0; j < symTable[i]->var->arrNode->size; j++)
             {
-                symTable[i]->var->arrNode->valNodes.push_back(new ValueNode);
+                string name = symTable[i]->var->arrNode->name;
+				name = name + to_string(j);
+				ValueNode* temp = new ValueNode;
+				temp->name = name;
+				symTable[i]->var->arrNode->valNodes.push_back(temp);
             }
         }
     }
@@ -632,7 +640,7 @@ StatementNode* Parser::parse_assign_stmt()
     ValueNode* tempNode;
 
     tempNode = parse_var_access();
-        assignNode->left_hand_side = tempNode;
+	assignNode->left_hand_side = tempNode;
 
     expect(EQUAL);
 
@@ -643,7 +651,8 @@ StatementNode* Parser::parse_assign_stmt()
     assignNode->operand1 = exprNode->op1;
     assignNode->operand2 = exprNode->op2;
 
-    expect(SEMICOLON);
+	Token t = peek();
+	expect(SEMICOLON);
 
     if(errorFind)
         cout << "Finished " << "parse_assign_stmt" << endl;
@@ -782,7 +791,10 @@ ValueNode* Parser::parse_factor()
     else if(t.token_type == NUM)
         node = constNode(stoi(t.lexeme));
     else
-        node = parse_var_access();
+	{
+		lexer.UngetToken(t);
+		node = parse_var_access();
+	}
 
     if(errorFind)
         cout << "Finished " << "parse_factor" << endl;
