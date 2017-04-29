@@ -15,34 +15,6 @@ if [ ! -x "./a.out" ]; then
     exit 1
 fi
 
-usage()
-{
-    echo
-    echo "Usage: $0 n"
-    echo
-    echo "Where n is the desired task number in range [1..5]"
-    echo
-    exit 1
-}
-
-if [ "$#" -lt "1" ]; then
-    echo "Error: task number not specified!"
-    usage
-fi
-
-if [[ ! "$1" =~ ^[0-9]+$ ]]; then
-    echo "Error: argument is not a number"
-    usage
-fi
-
-if [ "$1" -lt "1" -o "$1" -gt "5" ]; then
-    echo "Error: argument must be a number in range [1..5]"
-    usage
-fi
-
-taskNumber=$1
-taskNumber=$((taskNumber+0))
-
 let count=0
 let all=0
 
@@ -71,7 +43,7 @@ for test_file in $(find ./tests -type f -name "*.txt" | sort); do
 done
 
 echo
-echo "Passed $count tests out of $all for task ${taskNumber}"
+echo "Passed $count tests out of $all"
 echo
 
 rmdir ./output

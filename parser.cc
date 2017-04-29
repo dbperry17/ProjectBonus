@@ -12,7 +12,7 @@ using namespace std;
  *  TEST VARIABLES  *
  ********************/
 
-bool errorFind = false;
+bool errorFind = true;
 bool testIf = false;
 bool testSwitch = false;
 int testNum = 1;
@@ -43,26 +43,26 @@ struct Parser::CaseNode
     StatementNode* body;
 };
 
-struct ArrNode
+struct Parser::ArrNode
 {
     std::string name;
     int size;
     vector<ValueNode*> valNodes;
 };
 
-union varNode
+union Parser::varNode
 {
     ValueNode* intNode;
     ArrNode* arrNode;
 };
 
-struct myVar
+struct Parser::myVar
 {
     varNode* var;
     TokenType type;
 };
 
-vector<myVar*> symTable;
+vector<Parser::myVar*> symTable;
 
 
 /********************************************************************
@@ -164,12 +164,14 @@ Parser::myVar* Parser::symLookup(string name, TokenType type)
 }
 
 //Adds new ValueNode to symbol table
-myVar* Parser::addValNode(string name)
+Parser::myVar* Parser::addValNode(string name)
 {
     if(errorFind)
         cout << "Starting " << "addValNode" << endl;
 
     myVar* temp = new myVar;
+    temp->var = new varNode;
+    temp->var->intNode = new ValueNode;
     temp->type = NUM;
     temp->var->intNode->name = name;
     symTable.push_back(temp);
@@ -182,13 +184,15 @@ myVar* Parser::addValNode(string name)
 }
 
 //Adds new ArrNode to symbol table
-myVar* Parser::addArrNode(string name)
+Parser::myVar* Parser::addArrNode(string name)
 {
     if(errorFind)
         cout << "Starting " << "addArrNode" << endl;
 
     myVar* temp = new myVar;
     temp->type = ARRAY;
+    temp->var = new varNode;
+    temp->var->arrNode = new ArrNode;
     temp->var->arrNode->name = name;
     symTable.push_back(temp);
     temp = symLookup(name, ARRAY); //yay recursion
@@ -339,72 +343,97 @@ void Parser::parse_var_section()
 //TODO: Might need to return something
 void Parser::parse_int_var_decl()
 {
-    parse_id_list(false, 0);
+    if(errorFind)
+        cout << "Starting " << "parse_int_var_decl" << endl;
+
+    parse_id_list(false);
     expect(SEMICOLON);
+
+    if(errorFind)
+        cout << "Finished " << "parse_int_var_decl" << endl;
 }
 
 //array_var_decl -> id_list COLON ARRAY LBRAC NUM RBRAC SEMICOLON
 //TODO: Might need to return something
 void Parser::parse_array_var_decl()
 {
+    if(errorFind)
+        cout << "Starting " << "parse_array_var_decl" << endl;
+
     //idea: get token of start of idlist, parse idList,
     //      expect until num, store num, unget token to
     //      start of idList, then parse idlist again
     //      with proper size
     //      problem:    don't want to store things with first call
     //      solution:   if arr, don't store unless size != 0
-    Token t = peek();
-    parse_id_list(true, 0);
+    parse_id_list(true);
     expect(COLON);
     expect(ARRAY);
     expect(LBRAC);
-    Token t2 = lexer.GetToken();
-    lexer.UngetToken(t);
-    parse_id_list(true, stoi(t2.lexeme));
+    Token t = lexer.GetToken();
+    for(int i = 0; i < (int)symTable.size(); i++)
+    {
+        if(symTable[i]->type == ARRAY)
+        {
+            symTable[i]->var->arrNode->size = stoi(t.lexeme);
+            for(int j = 0; j < symTable[i]->var->arrNode->size; j++)
+            {
+                symTable[i]->var->arrNode->valNodes.push_back(new ValueNode);
+            }
+        }
+    }
     expect(RBRAC);
     expect(SEMICOLON);
+
+    if(errorFind)
+        cout << "Finished " << "parse_array_var_decl" << endl;
 }
 
 //id_list -> ID COMMA id_list | ID
 //parameter: 1 if array input, 0 if int input
 //TODO: Deal with ints vs arrays (possibly done)
-void Parser::parse_id_list(bool arr, int size)
+void Parser::parse_id_list(bool arr)
 {
     if(errorFind)
         cout << "Starting " << "parse_id_list" << endl;
+
 
     // id_list -> ID
     // id_list -> ID COMMA id_list
     myVar* tmpSym = new myVar;
     Token t = expect(ID);
-    if(arr && size != 0)
+    if(arr)
     {
+        tmpSym->var = new varNode;
+        tmpSym->var->arrNode = new ArrNode;
         tmpSym->type = ARRAY;
         tmpSym->var->arrNode->name = t.lexeme;
-        tmpSym->var->arrNode->size = size;
         symTable.push_back(tmpSym);
     }
     else if(!arr)
     {
+        tmpSym->var = new varNode;
+        tmpSym->var->intNode = new ValueNode;
         tmpSym->type = NUM;
         tmpSym->var->intNode->name = t.lexeme;
         symTable.push_back(tmpSym);
     }
-
     t = lexer.GetToken();
     if (t.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
         //General case
-        parse_id_list(arr, size);
+        parse_id_list(arr);
     }
-    else if (t.token_type == SEMICOLON)
+    else if ((t.token_type == SEMICOLON) || (t.token_type == COLON))
     {
         // id_list -> ID
         lexer.UngetToken(t);
     }
     else
+    {
         syntax_error();
+    }
 
     if(errorFind)
         cout << "Finished " << "parse_id_list" << endl;
@@ -626,6 +655,9 @@ StatementNode* Parser::parse_assign_stmt()
 //TODO: Implement this (possibly done)
 ValueNode* Parser::parse_var_access()
 {
+    if(errorFind)
+        cout << "Starting " << "parse_var_access" << endl;
+
     Token t = lexer.GetToken();
     Token t2 = lexer.GetToken();
     myVar* temp;
@@ -636,14 +668,16 @@ ValueNode* Parser::parse_var_access()
         //var_access -> ID LBRAC expr RBRAC
         temp = symLookup(t.lexeme, ARRAY);
         ExprNode* pos = parse_expr();
-        expect(LBRAC);
-        if(pos->arith != OPERATOR_NONE)
+        expect(RBRAC);
+        if(pos->arith == OPERATOR_NONE)
+        {
             node = temp->var->arrNode->valNodes[pos->op1->value];
-        else if(pos->arith != OPERATOR_PLUS)
+        }
+        else if(pos->arith == OPERATOR_PLUS)
         {
             node = temp->var->arrNode->valNodes[pos->op1->value + pos->op2->value];
         }
-        else if(pos->arith != OPERATOR_MULT)
+        else if(pos->arith == OPERATOR_MULT)
         {
             node = temp->var->arrNode->valNodes[pos->op1->value * pos->op2->value];
         }
@@ -655,6 +689,9 @@ ValueNode* Parser::parse_var_access()
         temp = symLookup(t.lexeme, NUM);
         node = temp->var->intNode;
     }
+
+    if(errorFind)
+        cout << "Finished " << "parse_var_access" << endl;
 
     return node;
 }
@@ -691,6 +728,7 @@ Parser::ExprNode* Parser::parse_expr()
         expr->op2 = NULL;
     }
 
+
     if(errorFind)
         cout << "Finished " << "parse_expr" << endl;
 
@@ -702,6 +740,9 @@ Parser::ExprNode* Parser::parse_expr()
 //TODO: Implement this (possibly done)
 ValueNode* Parser::parse_term()
 {
+    if(errorFind)
+        cout << "Starting " << "parse_term" << endl;
+
     ValueNode* node = parse_factor();
     Token t = lexer.GetToken();
     if(t.token_type == MULT)
@@ -710,6 +751,9 @@ ValueNode* Parser::parse_term()
     }
     else
         lexer.UngetToken(t);
+
+    if(errorFind)
+        cout << "Finished " << "parse_term" << endl;
 
     return node;
 }
@@ -720,6 +764,9 @@ ValueNode* Parser::parse_term()
 //TODO: Implement this (possibly done)
 ValueNode* Parser::parse_factor()
 {
+    if(errorFind)
+        cout << "Starting " << "parse_factor" << endl;
+
     ValueNode* node;
     ExprNode* expr;
     Token t = lexer.GetToken();
@@ -737,12 +784,18 @@ ValueNode* Parser::parse_factor()
     else
         node = parse_var_access();
 
+    if(errorFind)
+        cout << "Finished " << "parse_factor" << endl;
+
     return node;
 }
 
 //if_stmt -> IF condition body
 StatementNode* Parser::parse_if_stmt()
 {
+    if(errorFind)
+        cout << "Starting " << "parse_if_stmt" << endl;
+
     StatementNode* stmt = new StatementNode;
     stmt->type = IF_STMT;
     IfStatement* ifNode = new IfStatement;
@@ -770,6 +823,9 @@ StatementNode* Parser::parse_if_stmt()
     //append no-op node to end of TB's body
     current->next = noOpNode;
     ifNode->false_branch = noOpNode;
+
+    if(errorFind)
+        cout << "finished " << "parse_if_stmt" << endl;
 
     return stmt;
 }
@@ -820,6 +876,9 @@ StatementNode* Parser::parse_while_stmt()
 //TODO: Alter this (possibly done)
 Parser::CondNode* Parser::parse_condition()
 {
+    if(errorFind)
+        cout << "Starting " << "parse_condition" << endl;
+
     CondNode* node = new CondNode;
     ExprNode* exprNode = parse_expr();
     ValueNode* valNode;
@@ -839,6 +898,9 @@ Parser::CondNode* Parser::parse_condition()
         valNode2 = constNode(exprNode->op1->value + exprNode->op2->value);
 
     node->op2 = valNode2;
+
+    if(errorFind)
+        cout << "Finished " << "parse_condition" << endl;
 
     return node;
 }

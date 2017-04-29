@@ -39,9 +39,7 @@ static void print_arithmetic_operator(ArithmeticOperatorType op)
     {
         case OPERATOR_NONE:      break;
         case OPERATOR_PLUS:      cout << " + ";  break;
-        case OPERATOR_MINUS:     cout << " - ";  break;
         case OPERATOR_MULT:      cout << " * ";  break;
-        case OPERATOR_DIV:       cout << " / ";  break;
         default:                 cout << " ? ";  break;
     }
 }

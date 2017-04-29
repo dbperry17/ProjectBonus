@@ -14,13 +14,35 @@
 
 using namespace std;
 
-string reserved[] = { "END_OF_FILE",
-    "VAR", "IF", "WHILE", "FOR", "SWITCH", "CASE", "DEFAULT", "PRINT", "ARRAY",
-    "PLUS", "MULT",
-    "EQUAL", "COLON", "COMMA", "SEMICOLON",
-    "LBRAC", "RBRAC", "LPAREN", "RPAREN", "LBRACE", "RBRACE",
-    "NOTEQUAL", "GREATER", "LESS",
-    "NUM", "ID", "ERROR"
+string reserved[] = {
+	"END_OF_FILE",	//0
+    "VAR",			//1
+	"IF",			//2
+	"WHILE",		//3
+	"FOR",			//4
+	"SWITCH",		//5
+	"CASE",			//6
+	"DEFAULT",		//7
+	"PRINT",		//8
+	"ARRAY",		//9
+    "PLUS",			//10
+	"MULT",			//11
+    "EQUAL",		//12
+	"COLON",		//13
+	"COMMA",		//14
+	"SEMICOLON",	//15
+    "LBRAC",		//16
+	"RBRAC",		//17
+	"LPAREN",		//18
+	"RPAREN",		//19
+	"LBRACE",		//20
+	"RBRACE",		//21
+    "NOTEQUAL",		//22
+	"GREATER",		//23
+	"LESS",			//24
+    "NUM",			//25
+	"ID",			//26
+	"ERROR"			//27
 };
 
 #define KEYWORDS_COUNT 9
@@ -183,8 +205,6 @@ Token LexicalAnalyzer::GetToken()
     input.GetChar(c);
     switch (c) {
         case '+':   tmp.token_type = PLUS;      return tmp;
-        case '-':   tmp.token_type = MINUS;     return tmp;
-        case '/':   tmp.token_type = DIV;       return tmp;
         case '*':   tmp.token_type = MULT;      return tmp;
         case '=':   tmp.token_type = EQUAL;     return tmp;
         case ':':   tmp.token_type = COLON;     return tmp;

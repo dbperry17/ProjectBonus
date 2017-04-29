@@ -12,12 +12,14 @@
 #include "compiler.h"
 
 class Parser {
+public:
+	struct myVar;
+
   private:
     struct ExprNode;
     struct CondNode;
     struct CaseNode;
-    union variables;
-    struct myVar;
+    union varNode;
     struct ArrNode;
     LexicalAnalyzer lexer;
     void syntax_error();
@@ -36,7 +38,7 @@ public:
     void parse_var_section();
     void parse_int_var_decl();
     void parse_array_var_decl();
-    void parse_id_list(bool arr, int size);
+    void parse_id_list(bool arr);
     StatementNode* parse_body();
     StatementNode* parse_stmt_list();
     StatementNode* parse_stmt();
