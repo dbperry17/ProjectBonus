@@ -26,12 +26,19 @@ enum ArithmeticOperatorType {
     OPERATOR_MULT
 };
 
+struct ExprNode
+{
+	ValueNode* op1;
+	ExprNode* op2;
+	ArithmeticOperatorType arith;
+};
+
 struct AssignmentStatement
 {
     struct ValueNode * left_hand_side;
 
     struct ValueNode * operand1;
-    struct ValueNode * operand2;
+    struct ExprNode * operand2;
 
     /*
      * If op == OPERATOR_NONE then only operand1 is meaningful.
@@ -87,6 +94,7 @@ struct StatementNode
 };
 
 void debug(const char* format, ...);
+int evalExpr(ExprNode* node);
 
 //---------------------------------------------------------
 // You should write the following function:

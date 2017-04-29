@@ -132,22 +132,29 @@ static void print_if(struct StatementNode* st, int indent)
 
 static void print_assignment(struct StatementNode* st, int indent)
 {
-    assert(st->assign_stmt->left_hand_side != NULL);
-    assert(st->assign_stmt->operand1 != NULL);
-    if (st->assign_stmt->op == OPERATOR_NONE)
-        assert(st->assign_stmt->operand2 == NULL);
-    else
-        assert(st->assign_stmt->operand2 != NULL);
+	assert(st->assign_stmt->left_hand_side != NULL);
+	assert(st->assign_stmt->operand1 != NULL);
+	if (st->assign_stmt->op == OPERATOR_NONE)
+		assert(st->assign_stmt->operand2 == NULL);
+	else
+		assert(st->assign_stmt->operand2 != NULL);
 
-    print_line_prefix(st, indent, false);
+	print_line_prefix(st, indent, false);
 
-    print_value_node(st->assign_stmt->left_hand_side);
-    cout << " = ";
-    print_value_node(st->assign_stmt->operand1);
-    print_arithmetic_operator(st->assign_stmt->op);
-    if (st->assign_stmt->operand2 != NULL)
-        print_value_node(st->assign_stmt->operand2);
-    cout << ";\n";
+	print_value_node(st->assign_stmt->left_hand_side);
+	cout << " = ";
+	print_value_node(st->assign_stmt->operand1);
+	print_arithmetic_operator(st->assign_stmt->op);
+
+	ExprNode* current = st->assign_stmt->operand2;
+	while (current != NULL)
+	{
+		print_value_node(current->op1);
+		print_arithmetic_operator(current->arith);
+		current = current->op2;
+	}
+
+	cout << ";\n";
 }
 
 static void print_goto(struct StatementNode* st, int indent)

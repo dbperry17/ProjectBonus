@@ -16,7 +16,6 @@ public:
 	struct myVar;
 
   private:
-    struct ExprNode;
     struct CondNode;
     struct CaseNode;
     union varNode;
@@ -45,7 +44,7 @@ public:
     StatementNode* parse_assign_stmt();
     ValueNode* parse_var_access();
     ExprNode* parse_expr();
-    ValueNode* parse_term();
+    ExprNode* parse_term();
     ValueNode* parse_factor();
     StatementNode* parse_print_stmt();
     StatementNode* parse_while_stmt();

@@ -11,7 +11,7 @@
 #include "compiler.h"
 #include "ir_debug.h"
 
-#define DEBUG 1     // 1 => Turn ON debugging, 0 => Turn OFF debugging
+#define DEBUG 0     // 1 => Turn ON debugging, 0 => Turn OFF debugging
 
 void debug(const char* format, ...)
 {
@@ -22,6 +22,16 @@ void debug(const char* format, ...)
         vfprintf (stdout, format, args);
         va_end (args);
     }
+}
+
+int evalExpr(ExprNode* node)
+{
+	if(node->arith == OPERATOR_PLUS)
+		return node->op1->value + evalExpr(node->op2);
+	else if(node->arith == OPERATOR_MULT)
+		return node->op1->value * evalExpr(node->op2);
+	else
+		return node->op1->value;
 }
 
 void execute_program(struct StatementNode * program)
@@ -80,12 +90,12 @@ void execute_program(struct StatementNode * program)
                 {
                     case OPERATOR_PLUS:
                         op1 = pc->assign_stmt->operand1->value;
-                        op2 = pc->assign_stmt->operand2->value;
+                        op2 = evalExpr(pc->assign_stmt->operand2);
                         result = op1 + op2;
                         break;
                     case OPERATOR_MULT:
                         op1 = pc->assign_stmt->operand1->value;
-                        op2 = pc->assign_stmt->operand2->value;
+						op2 = evalExpr(pc->assign_stmt->operand2);
                         result = op1 * op2;
                         break;
                     case OPERATOR_NONE:

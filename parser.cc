@@ -23,17 +23,10 @@ int testNum = 1;
  *  GLOBAL STRUCTS AND UNIONS  *
  *******************************/
 
-struct Parser::ExprNode
-{
-    ValueNode* op1;
-    ValueNode* op2;
-    ArithmeticOperatorType arith;
-};
-
 struct Parser::CondNode
 {
-    ValueNode* op1;
-    ValueNode* op2;
+    ExprNode* op1;
+    ExprNode* op2;
     ConditionalOperatorType condType;
 };
 
@@ -670,27 +663,16 @@ ValueNode* Parser::parse_var_access()
     Token t = lexer.GetToken();
     Token t2 = lexer.GetToken();
     myVar* temp;
-    ValueNode* node = new ValueNode; //to stop CLion from complaining
+    ValueNode* node;
 
     if(t2.token_type == LBRAC)
-    {
-        //var_access -> ID LBRAC expr RBRAC
-        temp = symLookup(t.lexeme, ARRAY);
-        ExprNode* pos = parse_expr();
-        expect(RBRAC);
-        if(pos->arith == OPERATOR_NONE)
-        {
-            node = temp->var->arrNode->valNodes[pos->op1->value];
-        }
-        else if(pos->arith == OPERATOR_PLUS)
-        {
-            node = temp->var->arrNode->valNodes[pos->op1->value + pos->op2->value];
-        }
-        else if(pos->arith == OPERATOR_MULT)
-        {
-            node = temp->var->arrNode->valNodes[pos->op1->value * pos->op2->value];
-        }
-    }
+	{
+		//var_access -> ID LBRAC expr RBRAC
+		temp = symLookup(t.lexeme, ARRAY);
+		ExprNode* pos = parse_expr();
+		expect(RBRAC);
+		node = temp->var->arrNode->valNodes[evalExpr(pos)];
+	}
     else
     {
         //var_access -> ID
@@ -708,33 +690,30 @@ ValueNode* Parser::parse_var_access()
 //expr -> term PLUS expr
 //expr -> term
 //TODO: Alter this (possibly done)
-Parser::ExprNode* Parser::parse_expr()
+ExprNode* Parser::parse_expr()
 {
     if(errorFind)
         cout << "Starting " << "parse_expr" << endl;
 
-    ExprNode* expr = new ExprNode;
-    ExprNode* second;
-    ValueNode* tempConst;
+    ExprNode* expr;
 
-    expr->op1 = parse_term();
+    expr = parse_term();
     Token t = lexer.GetToken();
+	ExprNode* current = expr;
+	while(current->arith != OPERATOR_NONE)
+	{
+		current = current->op2;
+	}
     if(t.token_type == PLUS)
     {
-        expr->arith = OPERATOR_PLUS;
-        second = parse_expr();
-        if(second->arith == OPERATOR_PLUS)
-            tempConst = constNode(second->op1->value + second->op2->value);
-        else
-            tempConst = constNode(second->op1->value);
-
-        expr->op2 = tempConst;
+        current->arith = OPERATOR_PLUS;
+        current->op2 = parse_expr();
     }
     else
     {
         lexer.UngetToken(t);
-        expr->arith = OPERATOR_NONE;
-        expr->op2 = NULL;
+        current->arith = OPERATOR_NONE;
+        current->op2 = NULL;
     }
 
 
@@ -747,19 +726,24 @@ Parser::ExprNode* Parser::parse_expr()
 //term -> factor MULT term
 //term -> factor
 //TODO: Implement this (possibly done)
-ValueNode* Parser::parse_term()
+ExprNode* Parser::parse_term()
 {
     if(errorFind)
         cout << "Starting " << "parse_term" << endl;
 
-    ValueNode* node = parse_factor();
+	ExprNode* node = new ExprNode;
+    node->op1 = parse_factor();
     Token t = lexer.GetToken();
     if(t.token_type == MULT)
     {
-        node->value *= parse_term()->value;
-    }
+		node->arith = OPERATOR_MULT;
+		node->op2 = parse_term();
+	}
     else
-        lexer.UngetToken(t);
+	{
+		node->arith = OPERATOR_NONE;
+		lexer.UngetToken(t);
+	}
 
     if(errorFind)
         cout << "Finished " << "parse_term" << endl;
@@ -783,10 +767,8 @@ ValueNode* Parser::parse_factor()
     if(t.token_type == LPAREN)
     {
         expr = parse_expr();
-        if(expr->arith == OPERATOR_NONE)
-            node = expr->op1;
-        else
-            node = constNode(expr->op1->value + expr->op2->value);
+		node = constNode(evalExpr(expr));
+		expect(RPAREN);
     }
     else if(t.token_type == NUM)
         node = constNode(stoi(t.lexeme));
@@ -820,9 +802,9 @@ StatementNode* Parser::parse_if_stmt()
 
     expect(IF);
     condNode = parse_condition();
-    ifNode->condition_operand1 = condNode->op1;
+    ifNode->condition_operand1 = condNode->op1->op1;
     ifNode->condition_op = condNode->condType;
-    ifNode->condition_operand2 = condNode->op2;
+    ifNode->condition_operand2 = condNode->op2->op1;
     ifNode->true_branch = parse_body();
 
     StatementNode* current = ifNode->true_branch;
@@ -862,9 +844,9 @@ StatementNode* Parser::parse_while_stmt()
 
     expect(WHILE);
     condNode = parse_condition();
-    whileNode->condition_operand1 = condNode->op1;
+    whileNode->condition_operand1 = condNode->op1->op1;
     whileNode->condition_op = condNode->condType;
-    whileNode->condition_operand2 = condNode->op2;
+    whileNode->condition_operand2 = condNode->op2->op1;
     whileNode->true_branch = parse_body();
 
     StatementNode* current = whileNode->true_branch;
@@ -892,24 +874,10 @@ Parser::CondNode* Parser::parse_condition()
         cout << "Starting " << "parse_condition" << endl;
 
     CondNode* node = new CondNode;
-    ExprNode* exprNode = parse_expr();
-    ValueNode* valNode;
-    ValueNode* valNode2;
-    if(exprNode->arith == OPERATOR_NONE)
-        valNode = exprNode->op1;
-    else
-        valNode = constNode(exprNode->op1->value + exprNode->op2->value);
 
-    node->op1 = valNode;
+    node->op1 = parse_expr();
     node->condType = parse_relop();
-
-    exprNode = parse_expr();
-    if(exprNode->arith == OPERATOR_NONE)
-        valNode2 = exprNode->op1;
-    else
-        valNode2 = constNode(exprNode->op1->value + exprNode->op2->value);
-
-    node->op2 = valNode2;
+    node->op2 = parse_expr();
 
     if(errorFind)
         cout << "Finished " << "parse_condition" << endl;
